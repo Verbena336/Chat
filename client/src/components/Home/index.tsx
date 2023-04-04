@@ -1,5 +1,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 import styles from './Home.module.scss';
 import { Button, Paper, TextField } from '@mui/material';
@@ -7,14 +8,18 @@ import { Button, Paper, TextField } from '@mui/material';
 import { Inputs } from './types';
 
 function Home() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<Inputs>({ mode: 'onSubmit' });
 
-  const onSubmit = (data: Inputs) => console.log(data);
+  const onSubmit = (data: Inputs) => {
+    console.log(data);
+    const { name, room } = data;
+    navigate(`/chat?room=${room}&name=${name}`);
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -45,6 +50,7 @@ function Home() {
               required: true,
             })}
           />
+
           <Button
             size="large"
             style={{ padding: '8px 80px' }}
