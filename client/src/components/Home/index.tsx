@@ -16,7 +16,6 @@ function Home() {
   } = useForm<Inputs>({ mode: 'onSubmit' });
 
   const onSubmit = (data: Inputs) => {
-    console.log(data);
     const { name, room } = data;
     navigate(`/chat?room=${room}&name=${name}`);
   };
@@ -38,6 +37,8 @@ function Home() {
             error={!!errors.name}
             {...register('name', {
               required: true,
+              pattern: /^[a-zA-Zа-яА-ЯёЁ0-9_-]+$/i,
+              maxLength: 15,
             })}
           />
           <TextField
@@ -48,6 +49,8 @@ function Home() {
             error={!!errors.room}
             {...register('room', {
               required: true,
+              pattern: /^[a-zA-Z0-9]+$/i,
+              maxLength: 15,
             })}
           />
 
