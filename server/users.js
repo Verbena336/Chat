@@ -17,4 +17,15 @@ const findUser = (params) => {
   return user;
 };
 
-export { addUser, findUser };
+const getUsers = (room) => {
+  return users.filter((item) => item.room === room);
+};
+
+const leaveUser = (params) => {
+  const filterUsers = users.filter(
+    (item) => item.name !== params.name && item.room === params.room
+  );
+  return filterUsers;
+};
+
+export { addUser, findUser, getUsers, leaveUser };

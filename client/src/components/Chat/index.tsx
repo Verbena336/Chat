@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { useForm } from 'react-hook-form';
 import EmojiPicker from 'emoji-picker-react';
 
 import Messages from '../Messages';
 
-import { TData } from './types';
+import { TData, TJoinRoom, TUser } from './types';
 
 import styles from './Chat.module.scss';
 import { Button, Paper } from '@mui/material';
@@ -19,6 +19,8 @@ function Chat() {
   const [params, setParams] = useState({ room: '', name: '' });
   const [isEmoji, setEmoji] = useState(false);
   const [message, setMessage] = useState('');
+  const [users, setUsers] = useState<TUser[]>([]);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -35,6 +37,15 @@ function Chat() {
     setMessage(event.target.value);
   };
 
+  const handleLeave = () => {
+    socketIo.emit('leaveRoom', params);
+    navigate('/');
+  };
+
+  useEffect(() => {
+    !search.length && navigate('/');
+  }, [navigate, search.length]);
+
   useEffect(() => {
     const searchParams = Object.fromEntries(new URLSearchParams(search)) as {
       room: string;
@@ -50,6 +61,12 @@ function Chat() {
     });
     socketIo.on('hello', (data) => {
       setState((state) => [...state, data]);
+    });
+  }, []);
+
+  useEffect(() => {
+    socketIo.on('joinRoom', (data) => {
+      setUsers(data.users);
     });
   }, []);
 
@@ -75,14 +92,14 @@ function Chat() {
                   <span className={styles.room}>room: </span>
                   <h1 className={styles.title}>{params.room}</h1>
                 </div>
-                <span className={styles.users}>0 users here</span>
+                <span className={styles.users}>{users.length} users here</span>
               </div>
               <Button
                 size="small"
                 style={{ padding: '8px 30px' }}
                 variant="outlined"
                 color="error"
-                href="/"
+                onClick={handleLeave}
               >
                 Leave
               </Button>

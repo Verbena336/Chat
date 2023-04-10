@@ -4,8 +4,8 @@ import { Server } from 'socket.io';
 import router from './router.js';
 import cors from 'cors';
 
-import { addUser, findUser } from './users.js';
-import { messages } from './messages.js';
+import { addUser, findUser, getUsers, leaveUser } from './users.js';
+import { newMessages, oldMessages } from './messages.js';
 
 const PORT = 5000;
 
@@ -28,9 +28,12 @@ socketIo.on('connection', (socket) => {
   socket.on('join', ({ name, room }) => {
     socket.join(room);
 
-    const { user } = addUser({ name, room });
+    const { user, isNewUser } = addUser({ name, room });
 
-    const toraMessage = messages[Math.floor(Math.random() * messages.length)];
+    let toraMessage = isNewUser
+      ? newMessages[Math.floor(Math.random() * newMessages.length)]
+      : oldMessages[Math.floor(Math.random() * oldMessages.length)];
+
     socket.emit('hello', {
       data: {
         user: { name: 'Tora' },
@@ -38,19 +41,35 @@ socketIo.on('connection', (socket) => {
       },
     });
 
-    socket.broadcast.to(user.room).emit('message', {
+    const allUsers = getUsers(room);
+
+    socketIo.in(user.room).emit('joinRoom', {
+      users: allUsers,
+    });
+
+    socket.to(user.room).emit('message', {
       data: {
         user: { name: 'Tora' },
         message: `${user.name} had joined!`,
       },
     });
+  });
 
-    socket.on('send', ({ message, params }) => {
-      const user = findUser(params);
-      console.log(message, params, user);
-      socketIo
-        .to(params.room)
-        .emit('message', { data: { user: user, message } });
+  socket.on('send', ({ message, params }) => {
+    const user = findUser(params);
+    socketIo.to(user.room).emit('message', { data: { user: user, message } });
+  });
+
+  socket.on('leaveRoom', (params) => {
+    const newUsers = leaveUser(params);
+    socketIo.to(params.room).emit('joinRoom', {
+      users: newUsers,
+    });
+    socket.to(params.room).emit('message', {
+      data: {
+        user: { name: 'Tora' },
+        message: `${params.name} had left😿`,
+      },
     });
   });
 

@@ -6,3 +6,18 @@ export type TData = {
     message: string;
   };
 };
+
+export type TJoinRoom = {
+  data: {
+    room: string;
+    users: TUser[];
+  };
+};
+
+export type TUser = {
+  isNewUser: boolean;
+  user: {
+    name: string;
+    room: string;
+  };
+};
